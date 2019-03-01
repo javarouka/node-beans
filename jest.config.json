@@ -1,0 +1,30 @@
+{
+  "verbose": true,
+  "moduleFileExtensions": [
+    "ts"
+  ],
+  "transform": {
+    "^.+\\.tsx?$": "ts-jest"
+  },
+  "testMatch": [
+    "**/*.(test|spec).ts"
+  ],
+  "globals": {
+    "window": {},
+    "ts-jest": {
+      "babelConfig": true,
+      "tsConfig": "tsconfig.json"
+    }
+  },
+  "coverageDirectory": "coverage",
+  "coveragePathIgnorePatterns": [
+    "/node_modules/",
+    "jest.stubs.js"
+  ],
+  "setupFiles": [ "./jest.stubs.js" ],
+  "coverageReporters": [
+    "json",
+    "lcov",
+    "text"
+  ]
+}
