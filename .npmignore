@@ -1,3 +1,6 @@
 src
 tslint.json
 tsconfig.json
+jest.config.json
+jest.stub.js
+babel.config.js
