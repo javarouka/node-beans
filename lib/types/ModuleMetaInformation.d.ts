@@ -1,5 +1,4 @@
 import ModuleType from './ModuleType';
-
 export default interface ModuleMetaInformation {
     name: string;
     marker: string | symbol;
@@ -7,5 +6,5 @@ export default interface ModuleMetaInformation {
     primary?: number;
     meta?: any;
     dependencies?: any[];
-    module: ModuleType
+    module: ModuleType;
 }

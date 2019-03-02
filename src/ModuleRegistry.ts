@@ -1,3 +1,4 @@
+import PathHelper from './PathHelper';
 import ModuleMetaInformation from './types/ModuleMetaInformation';
 import ModuleType from './types/ModuleType';
 
@@ -19,40 +20,99 @@ class ModuleRegistry {
         return this.createdModule.get(mt);
     }
 
-    public static forEachMetaInfo(iter: (meta:ModuleMetaInformation, type: ModuleType, map?:Map<ModuleType, ModuleMetaInformation>) => void): void {
-        ModuleRegistry.moduleMetaInfo.forEach(iter);
+    private static readonly moduleMetaInfo: Map<ModuleType, ModuleMetaInformation> = new Map();
+    private static readonly createdModule: Map<ModuleType, any> = new Map();
+
+    private scanDir: string;
+
+    constructor(
+        private readonly requirePath:string, 
+        private readonly scanFilter:(path:string) => RegExpMatchArray | null) {
+
+        this.scanDir = PathHelper.getRelaiveDirectory(requirePath, module.parent ? module.parent : module);
+        console.debug('controller scan directory # ', this.scanDir);
     }
 
-    private static readonly moduleMetaInfo: Map<ModuleType, ModuleMetaInformation> = new Map();
-    private static readonly createdModule: WeakMap<ModuleType, any> = new WeakMap();
+    public initialize() {
+        this.scan();
+    }
 
-    // private readonly scanner: ModuleScanner;
+    public lookup<T>(target: ModuleType): {
+        mod: T,
+        meta?: ModuleMetaInformation
+    } {
+        const mod = ModuleRegistry.getModule(target) as T;
+        const meta = ModuleRegistry.getMetaInformation(target);
+        return {
+            mod,
+            meta
+        }
+    }
 
-    // constructor(
-    //     private readonly requirePath:string, 
-    //     private readonly scanFilter:(path:string) => RegExpMatchArray | un) {
+    public lookupByMarker(marker: string | symbol) {
+        const found: Map<any, ModuleMetaInformation> = new Map(); 
+        ModuleRegistry.createdModule.forEach((val, key) => {
+            const meta = ModuleRegistry.getMetaInformation(key);
+            if(meta && meta.marker === marker) {
+                found.set(val, meta);
+                return;
+            }
+        });
+        return found;
+    }
 
-    //     const getScanDirectory = (dir: string) => {
-    //         const parent = module.parent;
-    //         console.log(parent);
-    //         if (!parent) {
-    //             return path.resolve(__dirname, dir);
-    //         }
+    get allModules(): Map<ModuleType, any> {
+        return ModuleRegistry.createdModule;
+    }
 
-    //         const parentFile = parent.filename;
-    //         const parentDir = path.dirname(parentFile);
-    //         return path.resolve(parentDir, dir);
-    //     };
+    private scan(): void {
+        const loadModule = require('require-dir')(this.scanDir, {
+            extensions: ['.js', '.ts'],
+            recurse: true,
+            noCache: true,
+            filter(fullPath: string) {
+                return fullPath.match(/Controller.(ts|js)$/);
+            },
+            mapValue(commonJSModule: { default: new (...args: any[]) => {} }) {
+                return commonJSModule.default;
+            }
+        });
+        
+        this.postProcess(loadModule);
+    }
 
-    //     const scanDir = getScanDirectory(requirePath);
-    //     console.debug('controller scan directory # ', scanDir);
+    private postProcess(loadModule: Readonly<{
+        [prop:string]: ModuleType
+    }>) {
 
-    //     this.scanner = new ModuleScanner(scanDir, scanFilter);
-    // }
+        const metaModules:ModuleType[] = [];
 
-    // public initialize() {
-    //     this.scanner.scan();
-    // }
+        Object.keys(loadModule)
+            .forEach((key) => {
+                const ModuleClz = loadModule[key];
+                if(!ModuleRegistry.getMetaInformation(ModuleClz)) {
+                    if(ModuleClz.constructor.name === 'Object') {
+                        return;
+                    }
+                    ModuleRegistry.setModule(ModuleClz, new ModuleClz());
+                    return;
+                }
+                metaModules.push(ModuleClz)
+            });
+
+        metaModules.map(ModuleClz => {
+            const info = ModuleRegistry.getMetaInformation(ModuleClz);
+            if(!info) {
+                ModuleRegistry.setModule(ModuleClz, new ModuleClz());
+                return;
+            }
+            const { dependencies = [] } = info;
+            const deps = dependencies.map(dep => {
+                return ModuleRegistry.getModule(dep);
+            });
+            ModuleRegistry.setModule(ModuleClz, new ModuleClz(...deps));
+        });
+    }
 }
 
 export default ModuleRegistry;

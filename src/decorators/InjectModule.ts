@@ -11,6 +11,7 @@ export default function InjectModule(meta: ModuleMetaData = {}) {
 
         const info: ModuleMetaInformation = {
             marker: meta.marker || NormalModule,
+            dependencies: meta.dependencies || [],
             name: target.name,
             meta,
             module: target,
