@@ -1,6 +1,8 @@
-import * as scanner from '../index'
+import ModuleScanner from '../ModuleScanner';
 
 test('basic', () => {
-    scanner.scan('./modules')
+
+    const scanner = new ModuleScanner('./modules');
+    scanner.scan();
     expect(0).toBe(0);
 });
