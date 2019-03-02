@@ -74,7 +74,7 @@ class ModuleRegistry {
                 return fullPath.match(/Controller.(ts|js)$/);
             },
             mapValue(commonJSModule: { default: new (...args: any[]) => {} }) {
-                return commonJSModule.default;
+                return commonJSModule.default || commonJSModule;
             }
         });
         
@@ -92,6 +92,8 @@ class ModuleRegistry {
                 const ModuleClz = loadModule[key];
                 if(!ModuleRegistry.getMetaInformation(ModuleClz)) {
                     if(ModuleClz.constructor.name === 'Object') {
+                        // @ts-ignore
+                        ModuleRegistry.setModule(ModuleClz.name || ModuleClz, ModuleClz);
                         return;
                     }
                     ModuleRegistry.setModule(ModuleClz, new ModuleClz());
