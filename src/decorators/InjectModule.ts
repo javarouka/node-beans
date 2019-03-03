@@ -1,4 +1,5 @@
 import ModuleRegistry from '../ModuleRegistry';
+import { Managed } from '../symbols';
 import ModuleMetaInformation from '../types/ModuleMetaInformation';
 import ModuleMetaData from './ModuleMetaData';
 
@@ -25,6 +26,10 @@ export default function InjectModule(meta: ModuleMetaData = {}) {
             meta,
             module: target,
         };
+
+        Object.defineProperty(target, Managed, {
+            value: true
+        });
 
         ModuleRegistry.setMetaInformation(target, info);
     

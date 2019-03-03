@@ -32,16 +32,19 @@ class ModuleRegistry {
     private static readonly createdModule: Map<string | ModuleType, any> = new Map();
 
     private scanDir: string;
+    private readonly initialized?: boolean = false;
 
     constructor(
         private readonly requirePath:string, 
         private readonly scanFilter:(path:string) => RegExpMatchArray | null) {
-
         this.scanDir = PathHelper.getRelaiveDirectory(requirePath, module.parent ? module.parent : module);
         console.debug('controller scan directory # ', this.scanDir);
     }
 
     public initialize() {
+        if(this.initialized) {
+            return;
+        }
         this.scan();
     }
 
@@ -70,7 +73,7 @@ class ModuleRegistry {
         return ModuleRegistry.createdModule;
     }
 
-    private scan(): void {
+    public scan(): void {
         require('require-dir')(this.scanDir, {
             extensions: ['.js', '.ts'],
             recurse: true,

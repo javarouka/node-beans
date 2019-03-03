@@ -1,59 +1,54 @@
-import ModuleRegistry from '../src/index';
-import AController from './modules/AController';
-import IamNotInjectClass from './modules/IamNotInjectClass';
+import ModuleRegistry from '../src/index'
+import { Managed } from '../src/symbols'
+import AController from './modules/AController'
+import IamNotInjectClass from './modules/IamNotInjectClass'
+
+const registry = new ModuleRegistry('./modules', (fullPath: string) => {
+    return fullPath.match(/Controller.(ts|js)$/)
+})
+registry.initialize()
 
 test('all', () => {
-    const registry = new ModuleRegistry('./modules', (fullPath: string) => {
-        return fullPath.match(/Controller.(ts|js)$/);
-    });
-    registry.initialize();
 
     const found = registry.allModules
 
-    expect(found.size).toBe(3);
-});
+    expect(found.size).toBe(3)
+
+    found.forEach(val => {
+        const exists = val[Managed] || val.constructor[Managed]
+        expect(exists).toBe(true)
+    })
+})
 
 test('lookup Class', () => {
-    const registry = new ModuleRegistry('./modules', (fullPath: string) => {
-        return fullPath.match(/Controller.(ts|js)$/);
-    });
-    registry.initialize();
 
     const {
         mod:mod1
-    } = registry.lookup<AController>(AController);
+    } = registry.lookup<AController>(AController)
 
-    const expected1 = mod1 instanceof AController ? true : false;
-    expect(expected1).toBe(true);
+    const expected1 = mod1 instanceof AController ? true : false
+    expect(expected1).toBe(true)
 
-    expect(!!mod1.config).toBe(true);
-    expect(!!mod1.bController).toBe(true);
-});
+    expect(!!mod1.config).toBe(true)
+    expect(!!mod1.bController).toBe(true)
+})
 
 
 test('lookup class not exists', () => {
-    const registry = new ModuleRegistry('./modules', (fullPath: string) => {
-        return fullPath.match(/Controller.(ts|js)$/);
-    });
-    registry.initialize();
 
     const {
         mod
-    } = registry.lookup<IamNotInjectClass>(IamNotInjectClass);
+    } = registry.lookup<IamNotInjectClass>(IamNotInjectClass)
 
-    const expected1 = mod instanceof IamNotInjectClass ? true : false;
-    expect(expected1).toBe(false);
-});
+    const expected1 = mod instanceof IamNotInjectClass ? true : false
+    expect(expected1).toBe(false)
+})
 
 test('lookup object', () => {
-    const registry = new ModuleRegistry('./modules', (fullPath: string) => {
-        return fullPath.match(/Controller.(ts|js)$/);
-    });
-    registry.initialize();
 
     const {
         mod:mod2
-    } = registry.lookup('PlainModule');
+    } = registry.lookup('PlainModule')
 
-    expect(mod2.hello).toBe('world');
-});
+    expect(mod2.hello).toBe('world')
+})
