@@ -1,4 +1,4 @@
-import ModuleRegistry from '../index';
+import ModuleRegistry from '../src/index';
 import AController from './modules/AController';
 import IamNotInjectClass from './modules/IamNotInjectClass';
 

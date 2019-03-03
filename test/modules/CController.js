@@ -1,4 +1,4 @@
-import InjectModule from '../../decorators/InjectModule';
+import InjectModule from '../../src/decorators/InjectModule';
 
 export default InjectModule({
     name: 'PlainModule',
