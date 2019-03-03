@@ -1,27 +1,35 @@
 import PathHelper from './PathHelper';
+import LookupModule from './types/LookupModule';
 import ModuleMetaInformation from './types/ModuleMetaInformation';
 import ModuleType from './types/ModuleType';
 
 class ModuleRegistry {
 
-    public static setMetaInformation(mt: ModuleType, info:ModuleMetaInformation) {
+    public static exists(mt: any) {
+        return this.moduleMetaInfo.has(mt);
+    }
+
+    public static setMetaInformation(mt: any, info:ModuleMetaInformation) {
+        if(this.exists(mt)) {
+            return;
+        }
         this.moduleMetaInfo.set(mt, info);
     }
 
-    public static getMetaInformation(mt: ModuleType) {
+    public static getMetaInformation(mt: any) {
         return this.moduleMetaInfo.get(mt);
     }
 
-    public static setModule(mt: ModuleType, mod:any) {
+    public static setModule(mt: string | ModuleType, mod:any) {
         this.createdModule.set(mt, mod);
     }
 
-    public static getModule(mt: ModuleType) {
+    public static getModule(mt: string | ModuleType) {
         return this.createdModule.get(mt);
     }
 
     private static readonly moduleMetaInfo: Map<ModuleType, ModuleMetaInformation> = new Map();
-    private static readonly createdModule: Map<ModuleType, any> = new Map();
+    private static readonly createdModule: Map<string | ModuleType, any> = new Map();
 
     private scanDir: string;
 
@@ -37,10 +45,7 @@ class ModuleRegistry {
         this.scan();
     }
 
-    public lookup<T>(target: ModuleType): {
-        mod: T,
-        meta?: ModuleMetaInformation
-    } {
+    public lookup<T>(target: string | ModuleType): LookupModule {
         const mod = ModuleRegistry.getModule(target) as T;
         const meta = ModuleRegistry.getMetaInformation(target);
         return {
@@ -49,24 +54,24 @@ class ModuleRegistry {
         }
     }
 
-    public lookupByMarker(marker: string | symbol) {
-        const found: Map<any, ModuleMetaInformation> = new Map(); 
-        ModuleRegistry.createdModule.forEach((val, key) => {
+    public lookupByMarker(marker: string | symbol): LookupModule[] {
+        const found: LookupModule[] = []; 
+        ModuleRegistry.createdModule.forEach((mod, key) => {
             const meta = ModuleRegistry.getMetaInformation(key);
             if(meta && meta.marker === marker) {
-                found.set(val, meta);
+                found.push({mod, meta});
                 return;
             }
         });
         return found;
     }
 
-    get allModules(): Map<ModuleType, any> {
+    get allModules(): Map<string | ModuleType, any> {
         return ModuleRegistry.createdModule;
     }
 
     private scan(): void {
-        const loadModule = require('require-dir')(this.scanDir, {
+        require('require-dir')(this.scanDir, {
             extensions: ['.js', '.ts'],
             recurse: true,
             noCache: true,
@@ -74,35 +79,35 @@ class ModuleRegistry {
                 return fullPath.match(/Controller.(ts|js)$/);
             },
             mapValue(commonJSModule: { default: new (...args: any[]) => {} }) {
-                return commonJSModule.default || commonJSModule;
+                const mod = commonJSModule.default || commonJSModule;
+                return mod;
             }
         });
         
-        this.postProcess(loadModule);
+        this.postProcess();
     }
 
-    private postProcess(loadModule: Readonly<{
-        [prop:string]: ModuleType
-    }>) {
+    private postProcess() {
 
-        const metaModules:ModuleType[] = [];
+        const dependencyRequiredModule:ModuleType[] = [];
 
-        Object.keys(loadModule)
-            .forEach((key) => {
-                const ModuleClz = loadModule[key];
-                if(!ModuleRegistry.getMetaInformation(ModuleClz)) {
-                    if(ModuleClz.constructor.name === 'Object') {
-                        // @ts-ignore
-                        ModuleRegistry.setModule(ModuleClz.name || ModuleClz, ModuleClz);
-                        return;
-                    }
-                    ModuleRegistry.setModule(ModuleClz, new ModuleClz());
-                    return;
-                }
-                metaModules.push(ModuleClz)
-            });
+        ModuleRegistry.moduleMetaInfo.forEach((meta, ModuleClz) => {
 
-        metaModules.map(ModuleClz => {
+            if(typeof ModuleClz !== 'function') {
+                ModuleRegistry.setModule(meta.name || ModuleClz, ModuleClz);
+                return;
+            }
+
+            const { dependencies = [] } = meta;
+            if(dependencies.length > 0) {
+                dependencyRequiredModule.push(ModuleClz);
+                return;
+            }
+            const mod = (typeof ModuleClz === 'function') ? new ModuleClz() : ModuleClz;
+            ModuleRegistry.setModule(ModuleClz, mod);
+        });
+
+        dependencyRequiredModule.map(ModuleClz => {
             const info = ModuleRegistry.getMetaInformation(ModuleClz);
             if(!info) {
                 ModuleRegistry.setModule(ModuleClz, new ModuleClz());

@@ -1,23 +1,32 @@
-import Registry from '../ModuleRegistry';
+import ModuleRegistry from '../ModuleRegistry';
 import ModuleMetaInformation from '../types/ModuleMetaInformation';
-import ModuleType from '../types/ModuleType';
 import ModuleMetaData from './ModuleMetaData';
 
 const NormalModule = Symbol('@@NORMAL@@');
 
 export default function InjectModule(meta: ModuleMetaData = {}) {
     
-    return (target:ModuleType) => {
+    return (target:any) => {
+
+        if(ModuleRegistry.exists(target)) {
+            return target;
+        }
+
+        const {
+            name = '',
+            marker = '',
+            dependencies = []
+        } = meta;
 
         const info: ModuleMetaInformation = {
-            marker: meta.marker || NormalModule,
-            dependencies: meta.dependencies || [],
-            name: target.name,
+            marker: marker || NormalModule,
+            dependencies: dependencies || [],
+            name: name || target.name,
             meta,
             module: target,
         };
-    
-        Registry.setMetaInformation(target, info);
+
+        ModuleRegistry.setMetaInformation(target, info);
     
         return target;
     }

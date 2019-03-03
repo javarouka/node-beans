@@ -1,16 +1,17 @@
 import InjectModule from '../../decorators/InjectModule';
 import BController from './BController';
-import HttpController from './HttpController';
 
 @InjectModule({
-    dependencies: [ BController ],
+    dependencies: [ 'PlainModule', BController ],
+    name: 'AController',
     marker: 'Http',
     method: 'get',
     path: '/hello'
 })
-export default class AController implements HttpController {
-    constructor(bController: BController) {
-        console.info('A created', bController);
+export default class AController {
+    constructor(
+        public readonly config:{[p:string]:string}, 
+        public readonly bController: BController) {
     }
 
     public hello() {
