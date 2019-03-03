@@ -1,6 +1,6 @@
 # Module Registry
 
-<!-- [![Build Status](https://travis-ci.org/javarouka/decorator-advice.svg)](https://travis-ci.org/javarouka/decorator-advice) -->
+[![Build Status](https://travis-ci.org/javarouka/node-beans.svg)](https://travis-ci.org/javarouka/node-beans)
 
 ## Getting Started
 
