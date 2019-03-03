@@ -1,6 +1,6 @@
-import ModuleType from '../types/ModuleType';
 export default interface ModuleMetaData {
     marker?: string | symbol;
-    readonly dependencies?: ModuleType[];
+    name?: string;
+    readonly dependencies?: any[];
     readonly [props: string]: any;
 }
