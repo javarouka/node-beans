@@ -1,0 +1,4 @@
+enum ActiveProfile {
+    DEVELOPMENT,
+    PRODUCTION
+}

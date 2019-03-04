@@ -3,7 +3,15 @@ import LookupModule from './types/LookupModule';
 import ModuleMetaInformation from './types/ModuleMetaInformation';
 import ModuleType from './types/ModuleType';
 
+const PROFILE = process.env.NODE_ENV as unknown as ActiveProfile;
+
 class ModuleRegistry {
+    public static setProfiles(target: any, profiles: ActiveProfile[] = []) {
+        if(!profiles.length) {
+            return;
+        }
+        this.profileMap.set(target, profiles)
+    }
 
     public static exists(mt: any) {
         return this.moduleMetaInfo.has(mt);
@@ -28,6 +36,7 @@ class ModuleRegistry {
         return this.createdModule.get(mt);
     }
 
+    private static readonly profileMap: Map<ModuleType, ActiveProfile[]> = new Map();
     private static readonly moduleMetaInfo: Map<ModuleType, ModuleMetaInformation> = new Map();
     private static readonly createdModule: Map<string | ModuleType, any> = new Map();
 
@@ -96,6 +105,10 @@ class ModuleRegistry {
 
         ModuleRegistry.moduleMetaInfo.forEach((meta, ModuleClz) => {
 
+            if(this.isskipModuleRegistration(ModuleClz)) {
+                return;
+            }
+
             if(typeof ModuleClz !== 'function') {
                 ModuleRegistry.setModule(meta.name || ModuleClz, ModuleClz);
                 return;
@@ -111,6 +124,11 @@ class ModuleRegistry {
         });
 
         dependencyRequiredModule.map(ModuleClz => {
+
+            if(this.isskipModuleRegistration(ModuleClz)) {
+                return;
+            }
+
             const info = ModuleRegistry.getMetaInformation(ModuleClz);
             if(!info) {
                 ModuleRegistry.setModule(ModuleClz, new ModuleClz());
@@ -122,6 +140,18 @@ class ModuleRegistry {
             });
             ModuleRegistry.setModule(ModuleClz, new ModuleClz(...deps));
         });
+    }
+
+    private isskipModuleRegistration(ModuleClz: ModuleType): any {
+        if(!PROFILE) {
+            return false;
+        }
+        const ownProfiles = ModuleRegistry.profileMap.get(ModuleClz) || []
+        if(!ownProfiles.length) {
+            return false;
+        }
+
+        return ownProfiles.every(own => own !== PROFILE);
     }
 }
 

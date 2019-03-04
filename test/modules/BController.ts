@@ -1,6 +1,6 @@
-import InjectModule from '../../src/decorators/InjectModule';
+import Module from '../../src/decorators/Module';
 
-@InjectModule({
+@Module({
     marker: 'Http',
     name: 'BController',
     method: 'get',

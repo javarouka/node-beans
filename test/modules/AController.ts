@@ -1,7 +1,7 @@
-import InjectModule from '../../src/decorators/InjectModule';
+import Module from '../../src/decorators/Module';
 import BController from './BController';
 
-@InjectModule({
+@Module({
     dependencies: [ 'PlainModule', BController ],
     name: 'AController',
     marker: 'Http',

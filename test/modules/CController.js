@@ -1,6 +1,6 @@
-import InjectModule from '../../src/decorators/InjectModule';
+import Module from '../../src/decorators/Module';
 
-export default InjectModule({
+export default Module({
     name: 'PlainModule',
 })({
     hello: 'world'

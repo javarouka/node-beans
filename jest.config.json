@@ -14,7 +14,7 @@
     "ts-jest": {
       "babelConfig": true,
       "enableTsDiagnostics": true,
-      "tsConfig": "jest.tsconfig.json"
+      "tsConfig": "tsconfig.json"
     }
   },
   "coverageDirectory": "coverage",
