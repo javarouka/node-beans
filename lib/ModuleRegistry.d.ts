@@ -13,13 +13,13 @@ declare class ModuleRegistry {
     private static readonly profileMap;
     private static readonly moduleMetaInfo;
     private static readonly createdModule;
-    private scanDir;
-    private readonly initialized?;
+    readonly scanDir: string;
+    initialized?: boolean;
+    readonly allModules: Map<string | ModuleType, any>;
     constructor(requirePath: string, scanFilter: (path: string) => RegExpMatchArray | null);
     initialize(): void;
     lookup<T>(target: string | ModuleType): LookupModule;
     lookupByMarker(marker: string | symbol): LookupModule[];
-    readonly allModules: Map<string | ModuleType, any>;
     scan(): void;
     private postProcess;
     private isskipModuleRegistration;
