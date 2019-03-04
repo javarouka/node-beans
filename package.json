@@ -8,6 +8,7 @@
   "main": "lib/index.js",
   "scripts": {
     "lint": "tslint -c tslint.json 'src/**/*.ts'",
+    "lint:test": "tslint -c tslint.json 'test/**/*.ts'",
     "test": "jest",
     "test:watch": "jest --watch",
     "type-check": "tsc --noEmit",
