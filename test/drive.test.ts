@@ -1,3 +1,4 @@
+import * as path from 'path'
 import ModuleRegistry from '../src/index'
 import { Managed } from '../src/symbols'
 import AController from './modules/AController'
@@ -8,19 +9,32 @@ const registry = new ModuleRegistry('./modules', (fullPath: string) => {
 })
 registry.initialize()
 
-test('all', () => {
-
+test('기본 기능을 테스트한다', () => {
     const found = registry.allModules
+    expect(found.size).toBe(4)
+})
 
-    expect(found.size).toBe(3)
-
+test('가져온 모듈에 관리 마킹이 있는지 테스트한다', () => {
+    const found = registry.allModules
     found.forEach(val => {
         const exists = val[Managed] || val.constructor[Managed]
         expect(exists).toBe(true)
     })
 })
 
-test('lookup Class', () => {
+test('ModuleRegistry 자신 자체가 모듈로 관리되는지 확인한다', () => {
+
+    const {
+        mod
+    } = registry.lookup<ModuleRegistry>(ModuleRegistry)
+
+    const expected1 = mod instanceof ModuleRegistry ? true : false
+    expect(expected1).toBe(true)
+    expect(mod.initialized).toBe(true)
+    expect(mod.scanDir).toBe(path.resolve(__dirname, './modules'))
+})
+
+test('모듈 Lookup', () => {
 
     const {
         mod:mod1
@@ -33,8 +47,7 @@ test('lookup Class', () => {
     expect(!!mod1.bController).toBe(true)
 })
 
-
-test('lookup class not exists', () => {
+test('모듈 스캐너 조건 테스트', () => {
 
     const {
         mod
@@ -44,7 +57,7 @@ test('lookup class not exists', () => {
     expect(expected1).toBe(false)
 })
 
-test('lookup object', () => {
+test('일반 객체의 이름별 룩업이 가능한지 테스트', () => {
 
     const {
         mod:mod2

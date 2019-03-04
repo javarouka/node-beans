@@ -1,4 +1,5 @@
 import PathHelper from './PathHelper';
+import { Managed } from './symbols';
 import LookupModule from './types/LookupModule';
 import ModuleMetaInformation from './types/ModuleMetaInformation';
 import ModuleType from './types/ModuleType';
@@ -40,8 +41,12 @@ class ModuleRegistry {
     private static readonly moduleMetaInfo: Map<ModuleType, ModuleMetaInformation> = new Map();
     private static readonly createdModule: Map<string | ModuleType, any> = new Map();
 
-    private scanDir: string;
-    private readonly initialized?: boolean = false;
+    public readonly scanDir: string;
+    public initialized?: boolean = false;
+
+    public get allModules(): Map<string | ModuleType, any> {
+        return ModuleRegistry.createdModule;
+    }
 
     constructor(
         private readonly requirePath:string, 
@@ -54,6 +59,11 @@ class ModuleRegistry {
         if(this.initialized) {
             return;
         }
+        this.initialized = true;
+        Object.defineProperty(this, Managed, {
+            value: true
+        });
+        ModuleRegistry.setModule(ModuleRegistry, this);
         this.scan();
     }
 
@@ -76,10 +86,6 @@ class ModuleRegistry {
             }
         });
         return found;
-    }
-
-    get allModules(): Map<string | ModuleType, any> {
-        return ModuleRegistry.createdModule;
     }
 
     public scan(): void {
