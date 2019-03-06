@@ -13,9 +13,16 @@ npm i module-registry
 ## Usage
 
 ```typescript
-// @file ./modules/TestController.ts
 import { Module } from 'module-registry'
-import SomeModule from './SomeModule';
+
+@Module({
+    name: 'SomeModule',
+})
+export default class SomeModule {
+    public hello() {
+        return 'hello';
+    }
+}
 
 @Module({
     dependencies: [ SomeModule ],
@@ -24,12 +31,12 @@ import SomeModule from './SomeModule';
     method: 'get',
     path: '/hello'
 })
-export default class TestController {
+export default class TestControllerModule {
     constructor(
         public readonly somes: SomeModule) {
     }
-    public hello() {
-        return 'hello';
+    public work() {
+        return somes.hello();
     }
 }
 ```
@@ -40,7 +47,7 @@ import ModuleRegistry from 'module-registry'
 const registry = new ModuleRegistry('./modules', path => path.match(/\.Module.(ts|js)/));
 registry.initialize();
 
-const someModule = registry.lookup<TestController>('TestController');
+const someModule = registry.lookup<TestControllerModule>('TestController');
 console.log(someModule.hello())
 ```
 
