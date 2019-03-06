@@ -51,7 +51,7 @@ class ModuleRegistry {
 
     public lookup<T>(target: ModuleType): LookupModule {
         const mod = ModuleRegistry.getModule(target) as T;
-        const meta = Reflect.getMetadata(Managed, target);
+        const meta = this.getMetaDataFrom(target);
         return {
             mod,
             meta
@@ -61,7 +61,7 @@ class ModuleRegistry {
     public lookupByMarker(marker: string | symbol): LookupModule[] {
         const found: LookupModule[] = []; 
         ModuleRegistry.createdModule.forEach((mod, key) => {
-            const meta = Reflect.getMetadata(Managed, mod);
+            const meta = this.getMetaDataFrom(mod);
             if(meta && meta.marker === marker) {
                 found.push({mod, meta});
                 return;
@@ -85,28 +85,20 @@ class ModuleRegistry {
         this.postProcess();
     }
 
+    private getMetaDataFrom(target: ModuleType) {
+        return Reflect.getMetadata(Managed, target);
+    }
+
     private postProcess() {
-
         const dependencyRequiredModule:ModuleType[] = [];
+        ModuleRegistry.managedModule.forEach(this.processNonDependencyModule(dependencyRequiredModule))
+        dependencyRequiredModule.map(this.processDependencyModule());
+    }
 
-        ModuleRegistry.managedModule.forEach((ModuleClz, name) => {
-            const meta = Reflect.getMetadata(Managed, ModuleClz);
-            if(typeof ModuleClz !== 'function') {
-                ModuleRegistry.setModule(name || meta.name || ModuleClz, ModuleClz);
-                return;
-            }
-            const { dependencies = [] } = meta;
-            if(dependencies.length > 0) {
-                dependencyRequiredModule.push(ModuleClz);
-                return;
-            }
-            const mod = (typeof ModuleClz === 'function') ? new ModuleClz() : ModuleClz;
-            ModuleRegistry.setModule(ModuleClz, mod);
-        })
-
-        dependencyRequiredModule.map(ModuleClz => {
-            const meta = Reflect.getMetadata(Managed, ModuleClz);
-            if(!meta) {
+    private processDependencyModule(): (value: ModuleType, index: number) => void {
+        return ModuleClz => {
+            const meta = this.getMetaDataFrom(ModuleClz);
+            if (!meta) {
                 ModuleRegistry.setModule(ModuleClz, new ModuleClz());
                 return;
             }
@@ -115,7 +107,24 @@ class ModuleRegistry {
                 return ModuleRegistry.getModule(dep);
             });
             ModuleRegistry.setModule(ModuleClz, new ModuleClz(...deps));
-        });
+        };
+    }
+
+    private processNonDependencyModule(dependencyRequiredModule: ModuleType[]): (value: any, key: string) => void {
+        return (ModuleClz, name) => {
+            const meta = this.getMetaDataFrom(ModuleClz);
+            if (typeof ModuleClz !== 'function') {
+                ModuleRegistry.setModule(name || meta.name || ModuleClz, ModuleClz);
+                return;
+            }
+            const { dependencies = [] } = meta;
+            if (dependencies.length > 0) {
+                dependencyRequiredModule.push(ModuleClz);
+                return;
+            }
+            const mod = (typeof ModuleClz === 'function') ? new ModuleClz() : ModuleClz;
+            ModuleRegistry.setModule(ModuleClz, mod);
+        };
     }
 }
 

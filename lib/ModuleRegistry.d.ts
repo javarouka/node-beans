@@ -17,6 +17,9 @@ declare class ModuleRegistry {
     lookup<T>(target: ModuleType): LookupModule;
     lookupByMarker(marker: string | symbol): LookupModule[];
     scan(): void;
+    private getMetaDataFrom;
     private postProcess;
+    private processDependencyModule;
+    private processNonDependencyModule;
 }
 export default ModuleRegistry;
