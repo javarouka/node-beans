@@ -1,7 +1,7 @@
 # Module Registry
 
-[![npm package](https://img.shields.io/npm/v/node-beans/latest.svg)](https://www.npmjs.com/package/node-beans)
-[![npm downloads](https://img.shields.io/npm/dm/node-beans.svg)](https://www.npmjs.com/package/node-beans)
+[![npm package](https://img.shields.io/npm/v/module-registry/latest.svg)](https://www.npmjs.com/package/module-registry)
+[![npm downloads](https://img.shields.io/npm/dm/module-registry.svg)](https://www.npmjs.com/package/module-registry)
 [![Build Status](https://travis-ci.org/javarouka/node-beans.svg)](https://travis-ci.org/javarouka/node-beans)
 
 ## Getting Started
