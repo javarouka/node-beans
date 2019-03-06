@@ -38,6 +38,7 @@
   "author": "javarouka@gmail.com",
   "license": "MIT",
   "dependencies": {
+    "reflect-metadata": "^0.1.13",
     "require-dir": "^1.2.0"
   },
   "devDependencies": {
