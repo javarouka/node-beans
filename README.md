@@ -37,7 +37,7 @@ export default class TestControllerModule {
         public readonly somes: SomeModule) {
     }
     public work() {
-        return somes.hello();
+        return this.somes.hello();
     }
 }
 ```
