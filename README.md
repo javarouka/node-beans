@@ -1,3 +1,4 @@
+# !!! Deprecated
 # Module Registry
 
 [![npm package](https://img.shields.io/npm/v/module-registry/latest.svg)](https://www.npmjs.com/package/module-registry)

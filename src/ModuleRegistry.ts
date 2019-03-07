@@ -71,7 +71,7 @@ class ModuleRegistry {
     }
 
     public scan(): void {
-        require('require-dir')(this.scanDir, {
+        const modules = require('require-dir')(this.scanDir, {
             extensions: ['.js', '.ts'],
             recurse: true,
             noCache: true,
